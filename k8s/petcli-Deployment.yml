@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petcli-deployment
+  labels:
+    app: petcli 
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: petcli
+  template:
+    metadata:
+      labels:
+        app: petcli
+    spec:
+      containers:
+      - name: petcli
+        image: abeerdi/petclinic:latest 
+        ports:
+        - containerPort: 8080 
+      - name: mysql
+        image: mysql:5.7 
+        ports:
+        - containerPort: 3306 
+        env: #environment variables of configMap
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: petcli-configmap
+              key: mysql_root_password
+        - name: MYSQL_ALLOW_EMPTY_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: petcli-configmap
+              key: mysql_allow_empty_password
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: petcli-configmap 
+              key: mysql_user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: petcli-configmap
+              key: mysql_password
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: petcli-configmap
+              key: mysql_database
+---
+apiVersion: v1
+kind: Service 
+metadata:
+  name: petcli-service
+spec:
+  selector:
+    app: petcli 
+  type: NodePort 
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
